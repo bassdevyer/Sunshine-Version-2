@@ -15,6 +15,8 @@
  */
 package com.example.android.sunshine.app.data;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.AndroidTestCase;
@@ -125,21 +127,46 @@ public class TestDb extends AndroidTestCase {
     */
     public void testLocationTable() {
         // First step: Get reference to writable database
+        Context context = getContext();
+        WeatherDbHelper dbHelper = new WeatherDbHelper(context);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // Create ContentValues of what you want to insert
         // (you can use the createNorthPoleLocationValues if you wish)
-
+        ContentValues locationContentValues = TestUtilities.createNorthPoleLocationValues();
         // Insert ContentValues into database and get a row ID back
-
+        Long rowId = TestUtilities.insertNorthPoleLocationValues(context);
         // Query the database and receive a Cursor back
-
+        Cursor resultCursor = db.query(WeatherContract.LocationEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         // Move the cursor to a valid database row
-
+        if(!resultCursor.moveToFirst()){
+            fail("No records retrieved! Asshole!");
+        }
         // Validate data in resulting Cursor with the original ContentValues
         // (you can use the validateCurrentRecord function in TestUtilities to validate the
         // query if you like)
+        String testLocationSetting = "99705";
+        String testCityName = "North Pole";
+        double testLatitude = 64.7488;
+        double testLongitude = -147.353;
+        ContentValues expectedValues = new ContentValues();
+        expectedValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, testLocationSetting);
+        expectedValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, testCityName);
+        expectedValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, testLatitude);
+        expectedValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, testLongitude);
 
+        TestUtilities.validateCurrentRecord("Error, contents does not match", resultCursor, expectedValues);
         // Finally, close the cursor and database
+        if(resultCursor!= null && !resultCursor.isClosed())
+            resultCursor.close();
+        if(db.isOpen())
+            db.close();
 
     }
 
