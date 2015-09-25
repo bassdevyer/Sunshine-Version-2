@@ -128,16 +128,21 @@ public class TestDb extends AndroidTestCase {
     public void testLocationTable() {
         // First step: Get reference to writable database
         Context context = getContext();
-        WeatherDbHelper dbHelper = new WeatherDbHelper(context);
+        WeatherDbHelper dbHelper = new WeatherDbHelper(mContext);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         // Create ContentValues of what you want to insert
         // (you can use the createNorthPoleLocationValues if you wish)
-        ContentValues locationContentValues = TestUtilities.createNorthPoleLocationValues();
+        ContentValues testValues = TestUtilities.createNorthPoleLocationValues();
         // Insert ContentValues into database and get a row ID back
-        Long rowId = TestUtilities.insertNorthPoleLocationValues(context);
+        long locationRowId;
+        locationRowId = db.insert(WeatherContract.LocationEntry.TABLE_NAME, null, testValues);
+
+        // Verify we got a valid id
+        assertTrue(locationRowId != -1);
+
         // Query the database and receive a Cursor back
-        Cursor resultCursor = db.query(WeatherContract.LocationEntry.TABLE_NAME,
+        Cursor cursor = db.query(WeatherContract.LocationEntry.TABLE_NAME,
                 null,
                 null,
                 null,
@@ -145,9 +150,7 @@ public class TestDb extends AndroidTestCase {
                 null,
                 null);
         // Move the cursor to a valid database row
-        if(!resultCursor.moveToFirst()){
-            fail("No records retrieved! Asshole!");
-        }
+        assertTrue("Error, no rows retrieved! Pendejo!", cursor.moveToFirst());
         // Validate data in resulting Cursor with the original ContentValues
         // (you can use the validateCurrentRecord function in TestUtilities to validate the
         // query if you like)
@@ -155,18 +158,16 @@ public class TestDb extends AndroidTestCase {
         String testCityName = "North Pole";
         double testLatitude = 64.7488;
         double testLongitude = -147.353;
-        ContentValues expectedValues = new ContentValues();
-        expectedValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, testLocationSetting);
-        expectedValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, testCityName);
-        expectedValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, testLatitude);
-        expectedValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, testLongitude);
 
-        TestUtilities.validateCurrentRecord("Error, contents does not match", resultCursor, expectedValues);
+        // Validate
+        TestUtilities.validateCurrentRecord("Error, contents does not match", cursor, testValues);
+
+        // para asegurar que solo hay un registro en la tabla
+        assertFalse("Error, more than one record", cursor.moveToNext());
+
         // Finally, close the cursor and database
-        if(resultCursor!= null && !resultCursor.isClosed())
-            resultCursor.close();
-        if(db.isOpen())
-            db.close();
+        cursor.close();
+        db.close();
 
     }
 
