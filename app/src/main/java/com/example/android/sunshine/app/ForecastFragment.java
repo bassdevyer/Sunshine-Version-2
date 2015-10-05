@@ -15,12 +15,13 @@
  */
 package com.example.android.sunshine.app;
 
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,8 +35,10 @@ import com.example.android.sunshine.app.data.WeatherContract;
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link ListView} layout.
  */
-public class ForecastFragment extends Fragment {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    // Loader id integer constant
+    private static final int FORECAST_LOADER = 0;
     private ForecastAdapter mForecastAdapter;
 
     public ForecastFragment() {
@@ -70,25 +73,8 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // Obtiene la localizacion desde las preferencias de usuario, mediante el utilitario
-        String locationSetting = Utility.getPreferredLocation(getActivity());
-
-        // Ordenamiento ascendente por fecha
-        String sortOprder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
-
-        // Construye la uri para la consulta
-        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
-
-        Cursor cur = getActivity().getContentResolver().query(weatherForLocationUri,
-                null,
-                null,
-                null,
-                sortOprder);
-
-
-        // We cannot use FLAG_AUTO_REQUERY since it is deprecated, so we will end
-        // up with an empty list the first time we run.
-        mForecastAdapter = new ForecastAdapter(getActivity(), cur, 0);
+        // El CursorAdapter tomara la informacion del cursor y poblara el listView
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -98,6 +84,12 @@ public class ForecastFragment extends Fragment {
         listView.setAdapter(mForecastAdapter);
 
         return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(FORECAST_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
     }
 
     private void updateWeather() {
@@ -114,4 +106,42 @@ public class ForecastFragment extends Fragment {
     }
 
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        // Obtienes la localizacion establecida desde las preferencias de usuario
+        String locationSetting = Utility.getPreferredLocation(getActivity());
+
+        // Para atributo order en el CursorLoader
+        String sortOrder = WeatherContract.WeatherEntry.COLUMN_DATE + " ASC";
+
+        // Formas el uri para traer la informacion del clima
+        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithStartDate(locationSetting, System.currentTimeMillis());
+
+        // Construyes el cursorLoader
+        return new CursorLoader(
+                // contexto
+                getActivity(),
+                // uri
+                weatherForLocationUri,
+                // proyeccion
+                null,
+                // seleccion
+                null,
+                // argumentos de seleccion
+                null,
+                // orden
+                sortOrder
+        );
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mForecastAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mForecastAdapter.swapCursor(null);
+    }
 }
