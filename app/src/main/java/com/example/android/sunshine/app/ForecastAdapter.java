@@ -17,6 +17,18 @@ import com.example.android.sunshine.app.data.WeatherContract;
  */
 public class ForecastAdapter extends CursorAdapter {
 
+    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // must change.
+    static final int COL_WEATHER_ID = 0;
+    static final int COL_WEATHER_DATE = 1;
+    static final int COL_WEATHER_DESC = 2;
+    static final int COL_WEATHER_MAX_TEMP = 3;
+    static final int COL_WEATHER_MIN_TEMP = 4;
+    static final int COL_LOCATION_SETTING = 5;
+    static final int COL_WEATHER_CONDITION_ID = 6;
+    static final int COL_COORD_LAT = 7;
+    static final int COL_COORD_LONG = 8;
+
     public ForecastAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
     }
@@ -35,18 +47,13 @@ public class ForecastAdapter extends CursorAdapter {
         string.
      */
     private String convertCursorRowToUXFormat(Cursor cursor) {
-        // get row indices for our cursor
-        int idx_max_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP);
-        int idx_min_temp = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP);
-        int idx_date = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
-        int idx_short_desc = cursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC);
 
         String highAndLow = formatHighLows(
-                cursor.getDouble(idx_max_temp),
-                cursor.getDouble(idx_min_temp));
-
-        return Utility.formatDate(cursor.getLong(idx_date)) +
-                " - " + cursor.getString(idx_short_desc) +
+                cursor.getDouble(COL_WEATHER_MAX_TEMP),
+                cursor.getDouble(COL_WEATHER_MIN_TEMP));
+    
+        return Utility.formatDate(cursor.getLong(COL_WEATHER_DATE)) +
+                " - " + cursor.getString(COL_WEATHER_DESC) +
                 " - " + highAndLow;
     }
 
