@@ -15,6 +15,7 @@
  */
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
@@ -112,6 +114,29 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         // Get a reference to the ListView, and attach this adapter to it.
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
+
+        listView.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+                // CursorAdapter returns a cursor at the correct position for getItem(), or null
+                // if it cannot seek to that position.
+                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                if (cursor != null) {
+                    // Gets the location
+                    String locationSetting = Utility.getPreferredLocation(getActivity());
+                    // Instancia el intent hacia la activity de detalle
+                    Intent intent = new Intent(getActivity(), DetailActivity.class)
+                            .setData(
+                                    // Paso una uri, formada por la opcion seleccionada de preferencias de localizacion
+                                    // y el valor de la columna fecha del cursor correspondiente al item seleccionado
+                                    WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE))
+                            );
+                    // Inicio la activity con el intent creado
+                    startActivity(intent);
+                }
+            }
+        });
 
         return rootView;
     }
