@@ -117,26 +117,26 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
         listView.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView adapterView, View view, int position, long l) {
-                // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                // if it cannot seek to that position.
-                Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                if (cursor != null) {
-                    // Gets the location
-                    String locationSetting = Utility.getPreferredLocation(getActivity());
-                    // Instancia el intent hacia la activity de detalle
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(
-                                    // Paso una uri, formada por la opcion seleccionada de preferencias de localizacion
-                                    // y el valor de la columna fecha del cursor correspondiente al item seleccionado
-                                    WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE))
-                            );
-                    // Inicio la activity con el intent creado
-                    startActivity(intent);
-                }
-            }
-        });
+                    @Override
+                    public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+                        // CursorAdapter returns a cursor at the correct position for getItem(), or null
+                        // if it cannot seek to that position.
+                        Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                        if (cursor != null) {
+                            // Gets the location
+                            String locationSetting = Utility.getPreferredLocation(getActivity());
+                            // Instancia el intent hacia la activity de detalle
+                            Intent intent = new Intent(getActivity(), DetailActivity.class)
+                                    .setData(
+                                            // Paso una uri, formada por la opcion seleccionada de preferencias de localizacion
+                                            // y el valor de la columna fecha del cursor correspondiente al item seleccionado
+                                            WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE))
+                                    );
+                            // Inicio la activity con el intent creado
+                            startActivity(intent);
+                        }
+                    }
+                });
 
         return rootView;
     }
@@ -153,13 +153,6 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         String location = Utility.getPreferredLocation(getActivity());
         weatherTask.execute(location);
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateWeather();
-    }
-
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -198,5 +191,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mForecastAdapter.swapCursor(null);
+    }
+
+    /* In our ForecastFragment, create onLocationChanged.
+    This method will do two things,
+    it will first call updateWeather and then it will restart the loader.
+     */
+    void onLocationChanged(){
+        updateWeather();
+        getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
     }
 }
