@@ -246,7 +246,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
                 inserted = mContext.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, cvArray);
             }
 
-            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Inserted");
+            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + inserted + " Inserted");
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, e.getMessage(), e);
@@ -271,6 +271,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         // Will contain the raw JSON response as a string.
         String forecastJsonStr = null;
 
+        String appId = "3824042af6d39efb153acbe4d7c9d919";
         String format = "json";
         String units = "metric";
         int numDays = 14;
@@ -281,12 +282,14 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
             // http://openweathermap.org/API#forecast
             final String FORECAST_BASE_URL =
                     "http://api.openweathermap.org/data/2.5/forecast/daily?";
+            final String APPID_PARAM = "APPID";
             final String QUERY_PARAM = "q";
             final String FORMAT_PARAM = "mode";
             final String UNITS_PARAM = "units";
             final String DAYS_PARAM = "cnt";
 
             Uri builtUri = Uri.parse(FORECAST_BASE_URL).buildUpon()
+                    .appendQueryParameter(APPID_PARAM, appId)
                     .appendQueryParameter(QUERY_PARAM, params[0])
                     .appendQueryParameter(FORMAT_PARAM, format)
                     .appendQueryParameter(UNITS_PARAM, units)
