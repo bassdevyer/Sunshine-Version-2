@@ -126,9 +126,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        Log.v(LOG_TAG, "In onCreateLoader...");
+
         // Obtengo el intent
         Intent intent = getActivity().getIntent();
-        if (intent == null) {
+        // If DetailFragment is created without a uri (as in intent.data() == null), it should not try to create a loader
+        if (intent == null || intent.getData() == null) {
             // Si no existe un intent, no realiza acciones
             return null;
         }

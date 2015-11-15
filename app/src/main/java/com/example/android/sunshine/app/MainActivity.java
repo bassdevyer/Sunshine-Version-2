@@ -29,32 +29,29 @@ public class MainActivity extends ActionBarActivity {
 
     private final String LOG_TAG = MainActivity.class.getSimpleName();
 
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+
     // In MainActivity create a mLocation variable to store our current known location.
     private String mLocation;
 
-    private static final String FORECASTFRAGMENT_TAG = "FORECASTFRAGMENT_TAG";
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Always call the superclass first
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Check whether we're recreating a previously destroyed instance
-        if (savedInstanceState == null) {
-            // si no hay una instancia previamente destruida
-            // getSupportFragmentManager (): Porque es una subclase de FragmentActivity. Clase base para soporte de Fragments y Loaders
-            getSupportFragmentManager().beginTransaction()
-                    // aniado el fragment al estado de la activity
-                    // agregaremos el fragment en R.id.container
-                    // el fragmento a agregar es de tipo ForecastFragment
-                    // tag para ser utilizado mediante findFragmentByTag(String).
-                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
-                            // commitea varon
-                    .commit();
-        }
 
-        // Initialize this variable in onCreate to be whatever is currently stored in settings.
-        mLocation = Utility.getPreferredLocation(this);
+        if (findViewById(R.id.weather_detail_container) != null) {
+            mTwoPane = true;
+            if(savedInstanceState == null){
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.weather_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                .commit();
+            }
+        }else{
+            mTwoPane = false;
+        }
 
     }
 
@@ -109,7 +106,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         if (!Utility.getPreferredLocation(this).equals(mLocation)) {
-            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
             ff.onLocationChanged();
             mLocation = Utility.getPreferredLocation(this);
         }

@@ -113,7 +113,7 @@ public class ForecastAdapter extends CursorAdapter {
                 break;
             }
         }
-        
+
         viewHolder.iconView.setImageResource(resourceId != -1 ? resourceId : R.drawable.ic_launcher);
 
         Long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
