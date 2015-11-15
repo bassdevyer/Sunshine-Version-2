@@ -16,6 +16,7 @@ import android.widget.TextView;
  */
 public class ForecastAdapter extends CursorAdapter {
 
+    // Integer representations of the view type
     private final int VIEW_TYPE_TODAY = 0;
     private final int VIEW_TYPE_FUTURE_DAY = 1;
 
@@ -32,6 +33,7 @@ public class ForecastAdapter extends CursorAdapter {
         return highLowStr;
     }
 
+    // Returns the number of types of Views that will be created by getView, 2, the "normal one" and the "today"
     @Override
     public int getViewTypeCount() {
         return 2;
@@ -63,12 +65,15 @@ public class ForecastAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
 
+        // gets 0 only for the first item in the cursor
         int viewType = getItemViewType(cursor.getPosition());
 
         int layoutId = -1;
+        // fills the today view
         if (viewType == VIEW_TYPE_TODAY) {
             layoutId = R.layout.list_item_forecast_today;
         }
+        // the rest of the days will get the normal day layout
         if (viewType == VIEW_TYPE_FUTURE_DAY) {
             layoutId = R.layout.list_item_forecast;
         }
@@ -93,7 +98,23 @@ public class ForecastAdapter extends CursorAdapter {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
 
         // Use placeholder image for now
-        viewHolder.iconView.setImageResource(R.drawable.ic_launcher);
+        // gets 0 only for the first item in the cursor
+        int viewType = getItemViewType(cursor.getPosition());
+
+        int resourceId = -1;
+
+        switch (viewType){
+            case VIEW_TYPE_TODAY:{
+                resourceId = Utility.getArtResourceForWeatherCondition(cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID));
+                break;
+            }
+            case VIEW_TYPE_FUTURE_DAY:{
+                resourceId = Utility.getIconResourceForWeatherCondition(cursor.getInt(ForecastFragment.COL_WEATHER_CONDITION_ID));
+                break;
+            }
+        }
+        
+        viewHolder.iconView.setImageResource(resourceId != -1 ? resourceId : R.drawable.ic_launcher);
 
         Long date = cursor.getLong(ForecastFragment.COL_WEATHER_DATE);
         viewHolder.dateView.setText(Utility.formatDate(date));
@@ -131,4 +152,5 @@ public class ForecastAdapter extends CursorAdapter {
             lowTempView = (TextView) view.findViewById(R.id.list_item_low_textview);
         }
     }
+
 }
