@@ -6,6 +6,7 @@ package com.example.android.sunshine.app;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -37,7 +38,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     ShareActionProvider mShareActionProvider;
     private String mForecast;
 
+    static final String DETAIL_URI = "URI";
+
     private static final int DETAIL_LOADER = 0;
+
+    private Uri mUri;
 
     // Proyeccion
     private static final String[] DETAIL_COLUMNS = {
@@ -66,6 +71,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mWindView;
     private TextView mPressureView;
 
+    public static DetailFragment newInstance(int index){
+        DetailFragment detailFragment = new DetailFragment();
+
+        // Supply index input as an argument
+        Bundle args = new Bundle();
+        args.putInt("index", index);
+        detailFragment.setArguments(args);
+
+        return detailFragment;
+
+    }
+
+
     public DetailFragment() {
         setHasOptionsMenu(true);
     }
@@ -73,6 +91,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Bundle arguments = getArguments();
+
+        if(arguments != null){
+            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+        }
 
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
@@ -127,31 +151,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        Log.v(LOG_TAG, "In onCreateLoader...");
-
-        // Obtengo el intent
-        Intent intent = getActivity().getIntent();
-        // If DetailFragment is created without a uri (as in intent.data() == null), it should not try to create a loader
-        if (intent == null || intent.getData() == null) {
-            // Si no existe un intent, no realiza acciones
-            return null;
+        if(null != mUri){
+            // Now create and return a CursorLoader that will take care of
+            // creating a Cursor for the data being displayed
+            return new CursorLoader(
+                  getActivity(),
+                    mUri,
+                    DETAIL_COLUMNS,
+                    null,
+                    null,
+                    null
+            );
         }
-        // Crea y retorna un cursorLoader
-        return new CursorLoader(
-                getActivity(),
-                //Retrieve data this intent is operating on.  This URI specifies the name
-                // of the data; often it uses the content: scheme, specifying data in a
-                // ccontent provider.
-                intent.getData(),
-                // proyeccion
-                DETAIL_COLUMNS,
-                // columnas de seleccion
-                null,
-                // argumentos de seleccion
-                null,
-                // orden
-                null
-        );
+        return null;
     }
 
     @Override
@@ -213,5 +225,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
+    }
+
+    // Method called by main Activity whenever location is changed. It restarts the fragment loader.
+    void onLocationChanged( String newLocation ) {
+        // replace the uri, since the location has changed
+        Uri uri = mUri;
+        if (null != uri) {
+            long date = WeatherContract.WeatherEntry.getDateFromUri(uri);
+            Uri updatedUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(newLocation, date);
+            mUri = updatedUri;
+            getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
+        }
     }
 }

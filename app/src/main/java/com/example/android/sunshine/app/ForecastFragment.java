@@ -15,6 +15,8 @@
  */
 package com.example.android.sunshine.app;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -42,6 +44,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     // Loader id integer constant
     private static final int FORECAST_LOADER = 0;
     private ForecastAdapter mForecastAdapter;
+
+    ForecastFragmentCallbackInterface mCallback;
 
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -123,17 +127,10 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                         // if it cannot seek to that position.
                         Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                         if (cursor != null) {
-                            // Gets the location
+                            //Gets the location
                             String locationSetting = Utility.getPreferredLocation(getActivity());
-                            // Instancia el intent hacia la activity de detalle
-                            Intent intent = new Intent(getActivity(), DetailActivity.class)
-                                    .setData(
-                                            // Paso una uri, formada por la opcion seleccionada de preferencias de localizacion
-                                            // y el valor de la columna fecha del cursor correspondiente al item seleccionado
-                                            WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE))
-                                    );
-                            // Inicio la activity con el intent creado
-                            startActivity(intent);
+                            ((ForecastFragmentCallbackInterface)getActivity())
+                                    .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationSetting, cursor.getLong(COL_WEATHER_DATE)));
                         }
                     }
                 });
@@ -200,5 +197,28 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     void onLocationChanged(){
         updateWeather();
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // This makes sure that the container activity has impleented the callback interface. If not, it throws an exception.
+        try{
+            mCallback = (ForecastFragmentCallbackInterface) activity;
+        } catch(ClassCastException e){
+            throw new ClassCastException(activity.toString() + " must implement Callback interface");
+        }
+    }
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface ForecastFragmentCallbackInterface {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
     }
 }
