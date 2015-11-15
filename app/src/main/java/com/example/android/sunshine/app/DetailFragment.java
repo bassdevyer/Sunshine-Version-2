@@ -71,19 +71,6 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mWindView;
     private TextView mPressureView;
 
-    public static DetailFragment newInstance(int index){
-        DetailFragment detailFragment = new DetailFragment();
-
-        // Supply index input as an argument
-        Bundle args = new Bundle();
-        args.putInt("index", index);
-        detailFragment.setArguments(args);
-
-        return detailFragment;
-
-    }
-
-
     public DetailFragment() {
         setHasOptionsMenu(true);
     }
